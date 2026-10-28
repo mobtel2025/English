@@ -74,25 +74,31 @@
             opacity: 0.8;
         }
         
-        .level-up-btn {
+        .level-controls {
+            display: flex;
+            gap: 10px;
             margin-top: 15px;
+        }
+        .level-btn {
+            flex: 1;
             padding: 12px;
-            width: 100%;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            background-color: #d35400;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: 0.3s;
         }
-        .level-up-btn:hover {
-            background-color: #e67e22;
-        }
-        .level-up-btn:disabled {
+        .btn-down { background-color: #16a085; }
+        .btn-down:hover:not(:disabled) { background-color: #1abc9c; }
+        .btn-up { background-color: #d35400; }
+        .btn-up:hover:not(:disabled) { background-color: #e67e22; }
+        
+        .level-btn:disabled {
             background-color: #7f8c8d;
             cursor: not-allowed;
+            opacity: 0.7;
         }
 
         .score { 
@@ -124,18 +130,19 @@
         <div class="options" id="options"></div>
         <div class="message" id="message"></div>
         
-        <button id="levelUpBtn" class="level-up-btn" onclick="nextLevel()">⬆️ Zwiększ poziom angielskiego</button>
+        <div class="level-controls">
+            <button id="levelDownBtn" class="level-btn btn-down" onclick="prevLevel()">⬇️ Niższy poziom</button>
+            <button id="levelUpBtn" class="level-btn btn-up" onclick="nextLevel()">⬆️ Wyższy poziom</button>
+        </div>
 
         <div class="score">Wynik: <span id="score">0</span> / <span id="total">0</span></div>
 
-        <!-- Ukryty odtwarzacz muzyki, gra w pętli (uruchomi się przy pierwszym kliknięciu) -->
         <audio id="bgMusic" loop preload="auto">
             <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
         </audio>
     </div>
 
     <script>
-        // Baza słówek podzielona na 4 poziomy
         const levels = [
             {
                 name: "Poziom 1: Podstawowy (A1/A2)",
@@ -191,16 +198,16 @@
         const messageElement = document.getElementById('message');
         const levelBadge = document.getElementById('levelBadge');
         const levelUpBtn = document.getElementById('levelUpBtn');
+        const levelDownBtn = document.getElementById('levelDownBtn');
         const bgMusic = document.getElementById('bgMusic');
 
-        bgMusic.volume = 0.2; // Cicha, kojąca muzyka w tle
+        bgMusic.volume = 0.2;
 
-        // Uruchomienie muzyki przy PIERWSZYM kliknięciu (wymóg przeglądarek)
         document.body.addEventListener('click', function startMusic() {
             if (bgMusic.paused) {
                 bgMusic.play().catch(e => console.log("Auto-play zablokowany"));
             }
-            document.body.removeEventListener('click', startMusic); // Usuń nasłuchiwanie po pierwszym razie
+            document.body.removeEventListener('click', startMusic);
         });
 
         function shuffle(array) {
@@ -211,26 +218,17 @@
         }
 
         function startGame() {
-            // Resetujemy punkty i ładujemy słowa dla obecnego poziomu
             score = 0;
             totalQuestions = 0;
             scoreElement.textContent = score;
             totalElement.textContent = totalQuestions;
             
             levelBadge.textContent = levels[currentLevelIndex].name;
-            
-            // Kopiujemy słowa by nie zniszczyć oryginalnej tablicy
             availableWords = [...levels[currentLevelIndex].words];
             shuffle(availableWords);
 
-            // Ukrywamy lub pokazujemy przycisk zmiany poziomu
-            if (currentLevelIndex >= levels.length - 1) {
-                levelUpBtn.disabled = true;
-                levelUpBtn.textContent = "Osiągnąłeś maksymalny poziom!";
-            } else {
-                levelUpBtn.disabled = false;
-                levelUpBtn.textContent = "⬆️ Zwiększ poziom angielskiego";
-            }
+            levelUpBtn.disabled = currentLevelIndex >= levels.length - 1;
+            levelDownBtn.disabled = currentLevelIndex <= 0;
 
             loadNextWord();
         }
@@ -238,6 +236,13 @@
         function nextLevel() {
             if (currentLevelIndex < levels.length - 1) {
                 currentLevelIndex++;
+                startGame();
+            }
+        }
+
+        function prevLevel() {
+            if (currentLevelIndex > 0) {
+                currentLevelIndex--;
                 startGame();
             }
         }
@@ -299,7 +304,6 @@
             setTimeout(loadNextWord, 2000);
         }
 
-        // Startujemy grę po załadowaniu strony
         startGame();
     </script>
 </body>
